@@ -1,0 +1,5 @@
+spacy
+opencv-python
+pytesseract
+scipy
+SpeechRecognition
