@@ -4,6 +4,21 @@ from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
+# ai_models/natural_language_understanding/nlu_model.py
+
+from utils.tokenizer import get_tokenizer
+
+class NLUModel:
+    def __init__(self, model_name):
+        self.tokenizer = get_tokenizer(model_name)
+        # ... (existing initialization code)
+
+    def preprocess_text(self, text):
+        # Tokenize and preprocess the input text using the tokenizer
+        tokens = self.tokenizer.tokenize(text)
+        # Perform additional preprocessing if needed
+        return tokens
+
 
 class NLUModel:
     def __init__(self):

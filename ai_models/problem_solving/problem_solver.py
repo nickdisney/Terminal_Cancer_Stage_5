@@ -1,10 +1,13 @@
+# ai_models/problem_solving/problem_solver.py
+
 from queue import PriorityQueue
+from ai_models.problem_solving.problem_solver_utils import goal_state, get_successors, heuristic
 
 class ProblemSolver:
     def __init__(self):
         pass
 
-    def solve_problem(self, initial_state, goal_state, get_successors, heuristic):
+    def solve_problem(self, initial_state):
         visited = set()
         priority_queue = PriorityQueue()
         priority_queue.put((0, initial_state, []))
@@ -12,7 +15,7 @@ class ProblemSolver:
         while not priority_queue.empty():
             _, current_state, path = priority_queue.get()
 
-            if current_state == goal_state:
+            if goal_state(current_state):
                 return path
 
             if current_state in visited:

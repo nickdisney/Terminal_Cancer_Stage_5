@@ -4,6 +4,7 @@ from ai_models.natural_language_understanding.nlu_model import NLUModel
 from ai_models.skill_acquisition.skill_learner import SkillLearner
 from ai_models.decision_making.decision_maker import DecisionMaker
 from ai_models.problem_solving.problem_solver import ProblemSolver
+from ai_models.generative_model import GenerativeModel
 from data.knowledge_base.knowledge_base import KnowledgeBase
 from data.user_interactions.interaction_logger import InteractionLogger
 from interfaces.software_integration.software_controller import SoftwareController
@@ -30,6 +31,7 @@ def main():
     skill_learner = SkillLearner(num_states=100, num_actions=50, alpha=0.01, gamma=0.99, epsilon=0.1)
     decision_maker = DecisionMaker()
     problem_solver = ProblemSolver()
+    generative_model = GenerativeModel("path/to/generative/model", "path/to/tokenizer")
     knowledge_base = KnowledgeBase("knowledge.db")
     interaction_logger = InteractionLogger("interactions.log")
     software_controller = SoftwareController()
@@ -39,6 +41,7 @@ def main():
     memory_manager = MemoryManager("memory.db")
     safety_monitor = SafetyMonitor()
     performance_metrics = PerformanceMetrics()
+    nlu_model = NLUModel ("bert-base-uncased")
 
     # Register safety rules
     def is_safe_website(url):
@@ -101,38 +104,6 @@ def main():
     ]
     decision_maker.train_decision_tree(decision_labeled_data)
 
-    # Load problem solving skills
-    def get_weather_skill(params):
-        # Implement the logic to get weather information
-        location = params.get("location", "")
-        # Call weather API or scrape weather data from a website
-        # Return the weather information
-        return f"The weather in {location} is sunny with a temperature of 25°C."
-
-    def tell_joke_skill(params):
-        # Implement the logic to tell a joke
-        # Use a joke API or retrieve jokes from a database
-        return "Why don't scientists trust atoms? Because they make up everything!"
-
-    def set_reminder_skill(params):
-        # Implement the logic to set a reminder
-        reminder_text = params.get("reminder_text", "")
-        reminder_time = params.get("reminder_time", "")
-        # Use a reminder API or store the reminder in a database
-        return f"Reminder set: {reminder_text} at {reminder_time}"
-
-    def search_restaurants_skill(params):
-        # Implement the logic to search for restaurants
-        cuisine = params.get("cuisine", "")
-        location = params.get("location", "")
-        # Use a restaurant search API or scrape restaurant data from a website
-        return f"Here are some {cuisine} restaurants near {location}: ..."
-
-    skill_learner.acquire_skill(get_weather_skill)
-    skill_learner.acquire_skill(tell_joke_skill)
-    skill_learner.acquire_skill(set_reminder_skill)
-    skill_learner.acquire_skill(search_restaurants_skill)
-
     # Load knowledge base
     knowledge_base.add_fact("sky", "color", "blue")
     knowledge_base.add_fact("grass", "color", "green")
@@ -165,22 +136,36 @@ def main():
                 # Execute the action
                 if action == "get_weather":
                     location = entities.get("location", "")
-                    output = skill_learner.execute_skill(get_weather_skill, {"location": location})
+                    output = skill_learner.choose_action(state)
+                    # Assuming environment.step() returns next_state, reward, done, and additional info
+                    next_state, reward, done, _ = environment.step(output)
+                    skill_learner.store_experience(state, output, reward, next_state, done)
+                    skill_learner.train_q_network()
                 elif action == "tell_joke":
-                    output = skill_learner.execute_skill(tell_joke_skill, {})
+                    output = skill_learner.choose_action(state)
+                    next_state, reward, done, _ = environment.step(output)
+                    skill_learner.store_experience(state, output, reward, next_state, done)
+                    skill_learner.train_q_network()
                 elif action == "set_reminder":
                     reminder_text = entities.get("reminder_text", "")
                     reminder_time = entities.get("reminder_time", "")
-                    output = skill_learner.execute_skill(set_reminder_skill, {"reminder_text": reminder_text, "reminder_time": reminder_time})
+                    output = skill_learner.choose_action(state)
+                    next_state, reward, done, _ = environment.step(output)
+                    skill_learner.store_experience(state, output, reward, next_state, done)
+                    skill_learner.train_q_network()
                 elif action == "search_restaurants":
                     cuisine = entities.get("cuisine", "")
                     location = entities.get("location", "")
-                    output = skill_learner.execute_skill(search_restaurants_skill, {"cuisine": cuisine, "location": location})
+                    output = skill_learner.choose_action(state)
+                    next_state, reward, done, _ = environment.step(output)
+                    skill_learner.store_experience(state, output, reward, next_state, done)
+                    skill_learner.train_q_network()
                 elif action == "play_music":
                     genre = entities.get("genre", "")
                     output = software_controller.execute_command(f"play_music --genre {genre}")
                 else:
-                    output = problem_solver.solve_problem(user_input)
+                    # Assuming problem_solver.solve_problem() takes initial_state, goal_state, get_successors, and heuristic functions
+                    output = problem_solver.solve_problem(state, goal_state, get_successors, heuristic)
 
             # Display output
             user_interface.display_output(output)
